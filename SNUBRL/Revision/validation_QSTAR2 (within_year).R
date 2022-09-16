@@ -372,7 +372,7 @@ for (year_temp in year){
     ## BA prediction
     Y <- train_DF$BA
     Z <- log(1 + Y)
-    taus <- c(seq(0.01, 0.95, by = 0.01))
+    taus <- c(seq(0.05, 0.95, by = 0.05))
     m <- length(taus)
     pred <- matrix(nr = nrow(test_DF), nc = m)   # estimated quantiles
     train_DF_origin <- train_DF_new <- train_DF
@@ -571,7 +571,7 @@ for (year_temp in year){
     Y <- train_DF$CNT
     # Poissonization (Anscombe transform)
     Z <- sqrt(Y + 3/8)
-    taus <- seq(0.01, 0.95, by = 0.01)
+    taus <- seq(0.05, 0.95, by = 0.05)
     m <- length(taus)
     pred <- matrix(nr = nrow(test_DF), nc = m)   # estimated quantiles
     train_DF_origin <- train_DF_new <- train_DF
