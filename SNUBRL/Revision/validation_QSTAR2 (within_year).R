@@ -1,16 +1,15 @@
-## validation (Quantile STAR model)
+## validation (QSTAR2, within a year)
 
 rm(list=ls())
-
 library(geosphere)
 library(quantreg)
 library(dplyr)
 library(psych)
 library(spdep)
-#library(caret)
 library(patchwork)
 library(splines2)
 library(fields)
+#library(caret)
 
 
 p_hat_find <- function (vec, b){
@@ -28,29 +27,25 @@ p_hat_find <- function (vec, b){
 load("data_train.RData")
 data_odd_DF <- readRDS("data_odd_DF.RDS")
 data_odd_true <- data_train_DF %>% filter(year %% 2 == 1)
-
-
 train_DF_full <- subset(data_odd_DF, year == 1995 & month == 5)
 loc <- cbind(train_DF_full$lon, train_DF_full$lat)
 n <- nrow(loc)
-
-
 
 
 # weight matrix (cut-off value is 800km)
 # d <- matrix(rep(0, n * n), nr = n, nc = n)
 W_star <- Z <- matrix(rep(0, (6 * n)^2), nr = 6 * n, nc = 6 * n)
 S <- c()
-scale <- 270    # (distance) scale
-T <- 30
+scale <- 270    # (distance) scale hyperparameter
+T <- 30         # time scale hyperparameter  
 year_T <- 7 * T
 T_scale <- T/scale  # scaled time distance 
 year_T_scale <- year_T/scale
 for (i in 2:n){  
   for (j in 1:(i - 1)){
-    dist <- distGeo(loc[i, ], loc[j, ])/1000  # distance between ith and jth locations (km)
+    dist <- distGeo(loc[i, ], loc[j, ])/1000  # distance between i-th and j-th locations (km)
     dist_scale <- dist/scale
-    if (dist < sqrt(4800^2 + (year_T_scale + 2 * T_scale)^2)/6){   # 제일 먼 거리의 1/6을 cutoff로
+    if (dist < sqrt(4800^2 + (year_T_scale + 2 * T_scale)^2)/6){   # About 1/6 of the largest distance set to be cutoff value. 
       rep0 <- exp(-dist_scale)
       Z[i, j] <- rep0
       Z[j, i] <- rep0
@@ -328,7 +323,7 @@ for (year_temp in year){
       impute_temp <- exp(impute_log) - 1
       for (i in 1:nrow(impute_temp)){  # If imputed value is negative, set 0.
         if (impute_temp[i] < 0){
-          impute_temp[i] <- 0
+           impute_temp[i] <- 0
         }
       }
       impute <- c(impute, as.vector(impute_temp))
@@ -483,35 +478,114 @@ train_DF_full <- subset(data_odd_DF, year == 1993 & month == 3)
 loc <- cbind(train_DF_full$lon, train_DF_full$lat)
 n <- nrow(loc)
 
-
 year <- c(1993, 1997, 2001, 2005, 2009, 2013)
 month <- seq(3, 9, by = 1)
 t <- length(year)
 cnt.score <- vector(length = t)
 iter <- 1
-
 for (year_temp in year){
   for (month_temp in month){
-    print(iter)
+    #year_temp <- 1993
     #month_temp <- 3
-    if (month_temp == 3){
-      train_DF <- filter(data_odd_DF, year_temp <= year & year <= (year_temp + 2) & month <= (month_temp + 2))
-    } else if (month_temp == 9){
-      train_DF <- filter(data_odd_DF, year_temp <= year & year <= (year_temp + 2) & month <= month_temp & (month_temp - 2) <= month)
-    } else {
-      train_DF <- filter(data_odd_DF, year_temp <= year & year <= (year_temp + 2) & (month_temp - 1) <= month & month <= (month_temp + 1))
+    print(iter)
+    if (year_temp == 1993){
+      if (month_temp == 3){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= (month_temp + 2))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp + 2) & month <= (month_temp + 2))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else if (month_temp == 9){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= month_temp & (month_temp - 2) <= month)
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp + 2) & month <= month_temp & (month_temp - 2) <= month)
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else { # month_temp = 4, 5, 6, 7, 8
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp + 2) & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      }
+    } else if (year_temp == 1997){
+      if (month_temp == 3){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= (month_temp + 2))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp - 2) & month <= (month_temp + 2))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else if (month_temp == 9){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= month_temp & (month_temp - 2) <= month)
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp - 2) & month <= month_temp & (month_temp - 2) <= month)
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else {   # month_temp = 4, 5, 6, 7, 8
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp - 2) & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      }
+    } else if (year_temp == 2001){
+      if (month_temp == 3){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= (month_temp + 2))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp + 2) & month <= (month_temp + 2))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else if (month_temp == 9){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= month_temp & (month_temp - 2) <= month)
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp + 2) & month <= month_temp & (month_temp - 2) <= month)
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else {   # month_temp = 4, 5, 6, 7, 8
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp + 2) & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      }
+    } else if (year_temp == 2005){
+      if (month_temp == 3){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= (month_temp + 2))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp + 10) & month <= (month_temp + 2))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else if (month_temp == 9){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= month_temp & (month_temp - 2) <= month)
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp + 10) & month <= month_temp & (month_temp - 2) <= month)
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else {   # month_temp = 4, 5, 6, 7, 8
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp + 10) & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      }
+    } else if (year_temp == 2009){
+      if (month_temp == 3){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= (month_temp + 2))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp - 6) & month <= (month_temp + 2))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else if (month_temp == 9){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= month_temp & (month_temp - 2) <= month)
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp - 6) & month <= month_temp & (month_temp - 2) <= month)
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else {   # month_temp = 4, 5, 6, 7, 8
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp - 6) & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      }
+    } else {  # year_temp = 2013
+      if (month_temp == 3){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= (month_temp + 2))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp - 10) & month <= (month_temp + 2))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else if (month_temp == 9){
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & month <= month_temp & (month_temp - 2) <= month)
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp - 10) & month <= month_temp & (month_temp - 2) <= month)
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      } else { # month_temp = 4, 5, 6, 7, 8
+        train_DF_1 <- filter(data_odd_DF, year == year_temp & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF_2 <- filter(data_odd_DF, year == (year_temp - 10) & (month_temp - 1) <= month & month <= (month_temp + 1))
+        train_DF <- rbind(train_DF_1, train_DF_2)
+      }
     }
     
+    
     # covariate scaling
-    covariate <- names(train_DF_full)
+    covariate <- names(train_DF)
     for (i in 8:length(covariate)){
-      ori <- train_DF_full[, i]
+      ori <- train_DF[, i]
       scaled <- (ori - mean(ori))/sd(ori)
-      train_DF_full[, i] <- scaled
+      train_DF[, i] <- scaled
     }
-    missing <- is.na(train_DF_full$CNT)
+    missing <- is.na(train_DF$CNT)
+    
     # BA=0 index
-    BA_0 <- (train_DF_full[missing, ]$BA == 0)  
+    BA_0 <- (train_DF[missing, ]$BA == 0)  
     BA_0[is.na(BA_0)] <- 0
     
     # imputation
@@ -523,7 +597,7 @@ for (year_temp in year){
       # imputation at missing location by month (Thin-plate spline, Tps)
       y <- train_DF[c(rep(FALSE, 3503 * (j - 1)), !missing_temp, rep(FALSE, 3503 * (6 - j))), ]$CNT
       y <- as.matrix(y)
-      z <- sqrt(y + 3/8)
+      z <- sqrt(y + 3/8)  # Poissonization (Anscombe transform)
       fit <- Tps(loc_obs, z, lambda = 0, lon.lat = TRUE, miles = FALSE)
       temp <- predict(fit, loc_miss)
       impute_temp <- floor(temp^2 - 1/8)
@@ -535,8 +609,8 @@ for (year_temp in year){
       impute <- c(impute, as.vector(impute_temp))
     }
     # train with imputation
-    train_DF_full$CNT[missing] <- impute
-    train_DF <- subset(train_DF_full, select = -c(BA, lon, lat, year, month))
+    train_DF$CNT[missing] <- impute
+    train_DF <- subset(train_DF, select = -c(BA, lon, lat, year, month))
     if (month_temp == 3){
       missing_ori <- c(missing[1:3503], rep(FALSE, 3503 * 5))
     } else if (month_temp == 9){
@@ -549,13 +623,13 @@ for (year_temp in year){
     test_DF <- subset(data_odd_true, year == year_temp & month == month_temp)
 
     # covariate scaling
-    covariate <- names(test_DF_full)
+    covariate <- names(test_DF)
     for (i in 8:length(covariate)){
-      ori <- test_DF_full[, i]
+      ori <- test_DF[, i]
       scaled <- (ori - mean(ori))/sd(ori)
-      test_DF_full[, i] <- scaled
+      test_DF[, i] <- scaled
     }
-    test_DF_full <- subset(test_DF_full, select = -c(BA, lon, lat, year, month))
+    test_DF <- subset(test_DF, select = -c(BA, lon, lat, year, month))
     if (month_temp == 3){
       test_DF <- test_DF_origin <- test_DF[missing[1:3503], ]
     } else if (month_temp == 9){
@@ -660,7 +734,6 @@ for (year_temp in year){
     }
     cnt.score[iter] <- score_cnt
     iter <- iter + 1
-    
   }  
 }
 
