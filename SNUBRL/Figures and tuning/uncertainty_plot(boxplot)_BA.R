@@ -18,12 +18,8 @@ month.temp <- 9
 # modify your working directory with the data file if necessary (using the setwd() command):
 #setwd()
 
-
-#### Uncertainty plot of BA (western)
-load("data_full.RData")  # full data without missing
-year <- seq(1993, 2015, by = 1)
-month <- seq(3, 9, by = 1)
-Z_BA <- vector(length = 161)
+# Western region
+Z_BA1 <- vector(length = 161)
 iter <- 0
 for (year.temp in year){
   for(month.temp in month){  
@@ -33,20 +29,14 @@ for (year.temp in year){
     data_ori <- data_DF
     train <- subset(data_ori, year == year.temp & month == month.temp)
     select <- subset(train, lon == -123.25 & lat == 38.75)
-    Z_BA[iter] <- log(1 + select$BA)
+    Z_BA1[iter] <- log(1 + select$BA)
   }
 }
 
-
-boxplot(Z_BA, cex.lab = 1.3, cex.main = 1.25, ylab = "log(1+BA)", main = "Boxplot of log-transformed BA (western)")
-
-
-
-#### Uncertainty plot of BA (central)
-load("data_full.RData")  # full data without missing
+# Central region
 year <- seq(1993, 2015, by = 1)
 month <- seq(3, 9, by = 1)
-Z_BA <- vector(length = 161)
+Z_BA2 <- vector(length = 161)
 iter <- 0
 for (year.temp in year){
   for(month.temp in month){  
@@ -56,10 +46,14 @@ for (year.temp in year){
     data_ori <- data_DF
     train <- subset(data_ori, year == year.temp & month == month.temp)
     select <- subset(train, lon == -95.75 & lat == 38.75)
-    Z_BA[iter] <- log(1 + select$BA)
+    Z_BA2[iter] <- log(1 + select$BA)
     
   }
 }
 
-boxplot(Z_BA, cex.lab = 1.3, cex.main = 1.25, ylab = "log(1+BA)", main = "Boxplot of log-transformed BA (central)")
+BA_df <- data.frame(Western = Z_BA1, Central = Z_BA2)
 
+pdf("uncertainty_BA.pdf", height=5, width=5)
+boxplot(BA_df, cex.lab = 1.6, cex.main = 1.5, cex.axis = 1.4,
+        ylab = "log(1+BA)", main = "Boxplot of log-transformed BA")
+dev.off()
