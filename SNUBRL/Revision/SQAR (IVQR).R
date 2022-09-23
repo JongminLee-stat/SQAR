@@ -137,7 +137,7 @@ for (year.temp in year){
       #j <- 1
       tau <- taus[j]
       print(taus[j])
-      lambda <- seq(0.05, 1.00, by = 0.05)  # grid search (candidates of lambda)
+      lambda <- seq(0.10, 0.90, by = 0.05)  # grid search (candidates of lambda)
       memory_temp <- vector(length=length(lambda))
       iter2 <- 0
       for (lambda_temp in lambda){ # Do QR (Z - lambdaWZ ~ X, WX)
@@ -174,8 +174,6 @@ for (year.temp in year){
                            "altiMean.inst", "altiSD.inst", "clim1.inst", "clim2.inst", "clim3.inst", "clim4.inst", "clim5.inst", "clim6.inst",
                            "clim7.inst", "clim8.inst", "clim9.inst", "clim10.inst")
         train_with_instru <- cbind(train_DF, instru)
-        
-       
         fit_WZ <- rq(WZ ~., tau = tau, data = train_with_instru, method = "sfn")
         WZ_hat <- fit_WZ$fitted.values
         if (sum(WZ_hat^2) < 1e-10){   # WZ_hat(tau) = 0 => Z(tau) = 0
@@ -362,7 +360,6 @@ for (year.temp in year){
       train_with_instru <- rename(train_with_instru, "second" = "first")
       train_with_instru$second <- (Z - lambda_hat * W %*% Z)
       fit_IVQR <- rq(second ~., tau = tau, data = train_with_instru, method = "sfn")
-      #beta_hat <- fit_IVQR$coefficients[2:32]
       
       # estimation of WY_hat
       train_DF <- train_DF_origin
