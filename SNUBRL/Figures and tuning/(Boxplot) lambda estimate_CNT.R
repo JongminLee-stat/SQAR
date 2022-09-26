@@ -121,7 +121,7 @@ par(mfrow = c(1, 1),
     mar = c(5.5, 5.5, 5.5, 5.5)
 )        
 boxplot(lambda3, lambda4, lambda5, lambda6, lambda7, lambda8, lambda9, 
-        xlab = "Month", axes = FALSE, ylab = expression(lambda), cex.lab = 3, cex.main = 4, main = expression(paste("Spatial lag parameter",~ (tau==0.5), "by month (CNT)")))
+        xlab = "Month", axes = FALSE, ylab = expression(lambda), cex.lab = 3, cex.main = 4, main = expression(paste("Spatial lag parameter",~ (tau==0.5), ~ "by month (CNT)")))
 axis(1, at = 1:7, cex.axis = 2.5, lab = c("3", "4", "5", "6", "7", "8", '9'))
 axis(2, at = 0.05 * 0:25, cex.axis =  2.8)
 dev.off()
@@ -135,7 +135,7 @@ par(mfrow = c(1, 1),
 boxplot(lambda[1:7], lambda[8:14],lambda[15:21], lambda[22:28], lambda[29:35],lambda[36:42],lambda[43:49],lambda[50:56],lambda[57:63],lambda[64:70],
         lambda[71:77],lambda[78:84],lambda[85:91],lambda[92:98],lambda[99:105],lambda[106:112],lambda[113:119],lambda[120:126],
         lambda[127:133], lambda[134:140], lambda[141:147],lambda[148:154],lambda[155:161], names = 1993:2015, xlab = "Year", ylab = expression(lambda),
-        axes = FALSE, cex.lab = 3, cex.main = 4, main = expression(paste("Spatial lag parameter",~ (tau==0.5),~ "by year (CNT)")))
+        axes = FALSE, cex.lab = 3, cex.main = 4, main = expression(paste("Spatial lag parameter",~ (tau==0.5), ~ "by year (CNT)")))
 axis(1, at = 1:23, cex.axis = 2.5, lab = c("93", "94", "95", "96", "97", "98", "99", "00", "01", "02", "03", 
                                            "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"))
 axis(2, at = 0.05 * 0:25, cex.axis = 2.8)
