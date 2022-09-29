@@ -28,14 +28,14 @@ n <- nrow(loc)
 #d <- matrix(rep(0, n * n), nr = n, nc = n)
 W_star <- Z <- matrix(rep(0, 9 * n^2), nr = 3 * n, nc = 3 * n)
 S <- c()
-scale <- 270    # (distance) scale hyperparameter
-T <- 5000       # time scale hyperparameter             
+scale <- 270        # (distance) scale hyperparameter
+T <- 5000           # time scale hyperparameter             
 T_scale <- T/scale  # scaled time distance (2 year) 
 for (i in 2:n){  
   for (j in 1:(i - 1)){
     dist <- distGeo(loc[i, ], loc[j, ])/1000  # distance between ith and jth locations (km)
     dist_scale <- dist/scale
-    if (dist < sqrt(4800^2 + 4 * T^2)/6){   # 제일 먼 거리의 1/6을 cutoff로
+    if (dist < sqrt(4800^2)/6){   # 제일 먼 거리의 1/6을 cutoff로
       Z[i, j] <- exp(-dist_scale)
       Z[j, i] <- exp(-dist_scale)
       
@@ -122,20 +122,14 @@ for (i in 1:(3 * n)){
         scaled <- (ori - mean(ori))/sd(ori)
         train_DF_full[, i] <- scaled
       }
-      
-      
       train_DF_pre_origin <- subset(data_train_DF, year == 2011 & month == 9)
       train_DF_pre <- subset(train_DF_pre_origin, select = -c(CNT, lon, lat, year, month))
       train_DF_later_origin <- subset(data_train_DF, year == 2013 & month == 9)
       train_DF_later <- subset(train_DF_later_origin, select = -c(CNT, lon, lat, year, month))
-      
-      
-      # merge year.temp - 2, year.temp, year.temp - 1 (merge three years)
+      # merge 2011, 2015, 2013 (merge three years)
       train_DF <- subset(train_DF_full, select = -c(CNT, lon, lat, year, month))
       train_DF_merge <- rbind(train_DF_pre, train_DF, train_DF_later)
           
-  
-  
   
     ## BA prediction
     Y <- train_DF_merge$BA
@@ -143,9 +137,9 @@ for (i in 1:(3 * n)){
     train_DF_origin <- train_DF_new <- train_DF_merge
     train_DF_merge <- rename(train_DF_merge, "WZ" = "BA")
     train_DF_merge$WZ <- W_star %*% Z
-    tau <- 0.5
+    tau <- 0.75                             # tau = 0.5, 0.75, 0.9
     X <- as.matrix(train_DF_merge[, -1])
-    instru <- as.data.frame(W_star %*% X)  # instrument variable
+    instru <- as.data.frame(W_star %*% X)  # instrumental variable
     names(instru) <- c("area.inst", "lc1.inst", "lc2.inst", "lc3.inst", "lc4.inst", "lc5.inst", "lc6.inst", "lc7.inst", "lc8.inst", "lc9.inst",
                        "lc10.inst", "lc11.inst", "lc12.inst", "lc13.inst", "lc14.inst", "lc15.inst", "lc16.inst", "lc17.inst", "lc18.inst",
                        "altiMean.inst", "altiSD.inst", "clim1.inst", "clim2.inst", "clim3.inst", "clim4.inst", "clim5.inst", "clim6.inst",
@@ -165,6 +159,19 @@ for (i in 1:(3 * n)){
     
   
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -188,7 +195,7 @@ for (i in 1:(3 * n)){
     train_DF_later <- subset(train_DF_later_origin, select = -c(BA, lon, lat, year, month))
     
     
-    # merge 2011, 2015, 2013(merge three years)
+    # merge 2011, 2015, 2013 (merge three years)
     train_DF <- subset(train_DF_full, select = -c(BA, lon, lat, year, month))
     train_DF_merge <- rbind(train_DF_pre, train_DF, train_DF_later)
     
@@ -201,9 +208,9 @@ for (i in 1:(3 * n)){
     train_DF_origin <- train_DF_new <- train_DF_merge
     train_DF_merge <- rename(train_DF_merge, "WZ" = "CNT")
     train_DF_merge$WZ <- W_star %*% Z
-    tau <- 0.5
+    tau <- 0.9                            # tau = 0.5, 0.75, 0.9
     X <- as.matrix(train_DF_merge[, -1])
-    instru <- as.data.frame(W_star %*% X)  # instrument variable
+    instru <- as.data.frame(W_star %*% X)  # instrumental variable
     names(instru) <- c("area.inst", "lc1.inst", "lc2.inst", "lc3.inst", "lc4.inst", "lc5.inst", "lc6.inst", "lc7.inst", "lc8.inst", "lc9.inst",
                        "lc10.inst", "lc11.inst", "lc12.inst", "lc13.inst", "lc14.inst", "lc15.inst", "lc16.inst", "lc17.inst", "lc18.inst",
                        "altiMean.inst", "altiSD.inst", "clim1.inst", "clim2.inst", "clim3.inst", "clim4.inst", "clim5.inst", "clim6.inst",

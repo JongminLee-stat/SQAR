@@ -143,7 +143,7 @@ for (i in 1:(3 * n)){
     train_DF_origin <- train_DF_new <- train_DF_merge
     train_DF_merge <- rename(train_DF_merge, "WZ" = "BA")
     train_DF_merge$WZ <- W_star %*% Z
-    tau <- 0.9
+    tau <- 0.5
     X <- as.matrix(train_DF_merge[, -1])
     instru <- as.data.frame(W_star %*% X)  # instrument variable
     names(instru) <- c("area.inst", "lc1.inst", "lc2.inst", "lc3.inst", "lc4.inst", "lc5.inst", "lc6.inst", "lc7.inst", "lc8.inst", "lc9.inst",
