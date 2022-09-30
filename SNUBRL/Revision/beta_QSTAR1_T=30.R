@@ -112,6 +112,7 @@ for (i in 1:(3 * n)){
   }
 }
 
+
       
       # read data: train with NA
       train_DF_full <- subset(data_train_DF, year == 2015 & month == 9)
@@ -143,7 +144,7 @@ for (i in 1:(3 * n)){
     train_DF_origin <- train_DF_new <- train_DF_merge
     train_DF_merge <- rename(train_DF_merge, "WZ" = "BA")
     train_DF_merge$WZ <- W_star %*% Z
-    tau <- 0.5
+    tau <- 0.9
     X <- as.matrix(train_DF_merge[, -1])
     instru <- as.data.frame(W_star %*% X)  # instrument variable
     names(instru) <- c("area.inst", "lc1.inst", "lc2.inst", "lc3.inst", "lc4.inst", "lc5.inst", "lc6.inst", "lc7.inst", "lc8.inst", "lc9.inst",
@@ -151,7 +152,7 @@ for (i in 1:(3 * n)){
                        "altiMean.inst", "altiSD.inst", "clim1.inst", "clim2.inst", "clim3.inst", "clim4.inst", "clim5.inst", "clim6.inst",
                        "clim7.inst", "clim8.inst", "clim9.inst", "clim10.inst")
     train_with_instru <- cbind(train_DF_merge, instru)
-    fit_WZ <- rq(WZ ~., tau = tau, data = train_with_instru, method = "sfn")
+    fit_WZ <- rq(WZ ~., tau = tau, data = train_with_instru)
     WZ_hat <- fit_WZ$fitted.values
     if (sum(WZ_hat^2) < 1e-10){   # WZ_hat(tau) = 0 => Z(tau) = 0
       pred[, j] <- rep(0, nrow(test_DF))
